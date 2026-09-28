@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: '')
+    }
+    
+    environment {
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+        TARGET_HOST = "${params.TARGET_HOST}"
+    }
+    
+    stages {
+        stage('Prepare Inventory') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                        sh '''
+                            # Replace Jinja2 template variables in inventory.ini
+                            envsubst < inventory.ini.template > inventory.ini
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                        sh '''
+                            ansible-playbook -i inventory.ini deploy.yaml \
+                                -u ${SSH_USER} \
+                                --private-key=${SSH_KEY} \
+                                -v
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
