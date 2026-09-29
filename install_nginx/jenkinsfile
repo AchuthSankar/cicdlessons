@@ -2,13 +2,15 @@ pipeline {
     agent any
     
     parameters {
-        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: 'rocky-ssh')
+        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: 'localhost')
+        string(name: 'TARGET_PORT', description: 'Target host port', defaultValue: '2222')
         string(name: 'SSH_USER', description: 'Target host IP address or hostname', defaultValue: 'rocky')
     }
     
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
         TARGET_HOST = "${params.TARGET_HOST}"
+        TARGET_PORT = "${params.TARGET_PORT}"
     }
     
     stages {
@@ -21,6 +23,7 @@ pipeline {
                             # Use Ansible to template Jinja2 variables in inventory.ini
                             ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
                                 -e "target_host=${TARGET_HOST}" \
+                                -e "target_port=${TARGET_PORT}" \
                                 -e "ssh_user=${SSH_USER}"
                         '''
                     }
