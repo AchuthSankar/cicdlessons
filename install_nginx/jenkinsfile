@@ -17,16 +17,14 @@ pipeline {
         stage('Prepare Inventory') {
             steps {
                 script {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
-                        sh '''
-                            cd ${WORKSPACE}/install_nginx
-                            # Use Ansible to template Jinja2 variables in inventory.ini
-                            ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
-                                -e "target_host=${TARGET_HOST}" \
-                                -e "target_port=${TARGET_PORT}" \
-                                -e "ssh_user=${SSH_USER}"
-                        '''
-                    }
+                    sh '''
+                        cd ${WORKSPACE}/install_nginx
+                        # Use Ansible to template Jinja2 variables in inventory.ini
+                        ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
+                            -e "target_host=${TARGET_HOST}" \
+                            -e "target_port=${TARGET_PORT}" \
+                            -e "ssh_user=${SSH_USER}"
+                    '''
                 }
             }
         }
