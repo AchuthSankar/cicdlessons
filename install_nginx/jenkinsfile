@@ -2,7 +2,8 @@ pipeline {
     agent any
     
     parameters {
-        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: '')
+        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: 'rocky-ssh')
+        string(name: 'SSH_USER', description: 'Target host IP address or hostname', defaultValue: 'rocky')
     }
     
     environment {
@@ -17,8 +18,10 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
                         sh '''
                             cd ${WORKSPACE}/install_nginx
-                            # Replace Jinja2 template variables in inventory.ini
-                            envsubst < inventory.ini.template > inventory.ini
+                            # Use Ansible to template Jinja2 variables in inventory.ini
+                            ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
+                                -e "target_host=${TARGET_HOST}" \
+                                -e "ssh_user=${SSH_USER}"
                         '''
                     }
                 }
