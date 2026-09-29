@@ -20,13 +20,12 @@ pipeline {
                     sh '''
                         ANSIBLE_SSH_ARGS="-o ControlMaster=no"
                         cd ${WORKSPACE}/install_nginx
-                        export ANSIBLE_CONFIG=${WORKSPACE}/install_nginx/ansible.cfg
+                        export ANSIBLE_CONFIG=$WORKSPACE/install_nginx/ansible.cfg
                         # Use Ansible to template Jinja2 variables in inventory.ini
-                        ansible --config ansible.cfg localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
+                        ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
                             -e "target_host=${TARGET_HOST}" \
                             -e "target_port=${TARGET_PORT}" \
                             -e "ssh_user=${SSH_USER}"
-                            
                     '''
                 }
             }
