@@ -12,7 +12,7 @@
 
     - name: Install Java
       ansible.builtin.dnf:
-        name: openjdk-17-jdk
+        name: java-17-openjdk-devel
         state: present
         update_cache: true
 
