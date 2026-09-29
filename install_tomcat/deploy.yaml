@@ -11,7 +11,7 @@
   tasks:
 
     - name: Install Java
-      ansible.builtin.apt:
+      ansible.builtin.dnf:
         name: openjdk-17-jdk
         state: present
         update_cache: true
