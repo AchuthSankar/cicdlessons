@@ -1,2 +1,2 @@
 [webservers]
-target ansible_host=${TARGET_HOST} ansible_user=${SSH_USER}
+target ansible_host={{ target_host }} ansible_user={{ ssh_user }}
