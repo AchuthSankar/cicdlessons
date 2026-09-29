@@ -45,7 +45,7 @@ pipeline {
                             chmod 600 "$KEY"
 
                             cd ${WORKSPACE}/install_tomcat
-                            ansible-playbook -i inventory.ini deploy.yaml \
+                            ansible-playbook -vvv -i inventory.ini deploy.yaml \
                                 -u ${SSH_USER} \
                                 --private-key=${KEY} \
                                 -v
