@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'TARGET_HOST', description: 'Target host IP address or hostname', defaultValue: 'localhost')
+        string(name: 'TARGET_PORT', description: 'Target host port', defaultValue: '2222')
+        string(name: 'SSH_USER', description: 'Target host IP address or hostname', defaultValue: 'rocky')
+    }
+    
+    environment {
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+        TARGET_HOST = "${params.TARGET_HOST}"
+        TARGET_PORT = "${params.TARGET_PORT}"
+    }
+    
+    stages {
+        stage('Prepare Inventory') {
+            steps {
+                script {
+                    sh '''
+                        ANSIBLE_SSH_ARGS="-o ControlMaster=no"
+                        cd ${WORKSPACE}/install_tomcat
+                        # Use Ansible to template Jinja2 variables in inventory.ini
+                        ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
+                            -e "target_host=${TARGET_HOST}" \
+                            -e "target_port=${TARGET_PORT}" \
+                            -e "ssh_user=${SSH_USER}"
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                        sh '''
+
+                            export ANSIBLE_CONFIG=$WORKSPACE/install_tomcat/ansible.cfg
+                            
+                            KEY=$(mktemp)
+                            trap 'rm -f "$KEY"' EXIT
+
+                            cp "$SSH_KEY" "$KEY"
+                            chmod 600 "$KEY"
+
+                            cd ${WORKSPACE}/install_tomcat
+                            ansible-playbook -i inventory.ini deploy.yaml \
+                                -u ${SSH_USER} \
+                                --private-key=${KEY} \
+                                -v
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
