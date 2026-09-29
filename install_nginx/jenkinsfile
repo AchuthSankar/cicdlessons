@@ -20,7 +20,6 @@ pipeline {
                     sh '''
                         ANSIBLE_SSH_ARGS="-o ControlMaster=no"
                         cd ${WORKSPACE}/install_nginx
-                        export ANSIBLE_CONFIG=$WORKSPACE/install_nginx/ansible.cfg
                         # Use Ansible to template Jinja2 variables in inventory.ini
                         ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
                             -e "target_host=${TARGET_HOST}" \
@@ -37,6 +36,8 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
                         sh '''
 
+                            export ANSIBLE_CONFIG=$WORKSPACE/install_nginx/ansible.cfg
+                            
                             KEY=$(mktemp)
                             trap 'rm -f "$KEY"' EXIT
 
