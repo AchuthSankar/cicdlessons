@@ -36,10 +36,17 @@ pipeline {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'system-ssh-credentials', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
                         sh '''
+
+                            KEY=$(mktemp)
+                            trap 'rm -f "$KEY"' EXIT
+
+                            cp "$SSH_KEY" "$KEY"
+                            chmod 600 "$KEY"
+
                             cd ${WORKSPACE}/install_nginx
                             ansible-playbook -i inventory.ini deploy.yaml \
                                 -u ${SSH_USER} \
-                                --private-key=${SSH_KEY} \
+                                --private-key=${KEY} \
                                 -v
                         '''
                     }
