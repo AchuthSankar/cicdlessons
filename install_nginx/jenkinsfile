@@ -18,6 +18,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                        ANSIBLE_SSH_ARGS="-o ControlMaster=no"
                         cd ${WORKSPACE}/install_nginx
                         # Use Ansible to template Jinja2 variables in inventory.ini
                         ansible localhost -m template -a "src=inventory.ini.template dest=inventory.ini" \
